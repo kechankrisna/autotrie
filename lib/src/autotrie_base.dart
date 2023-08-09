@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:hive/hive.dart';
-import 'package:meta/meta.dart';
 
 part 'datatree/tree.dart';
 
@@ -11,7 +10,7 @@ part 'datatree/tree.dart';
 /// Add entries to build up the suggestion bank. Then, you can use the suggest
 /// method to get the auto-completions for the beginning of a String.
 class AutoComplete {
-  _TrieSearchTree _tree;
+  late _TrieSearchTree _tree;
 
   /// Whether this autocompletion engine has changed since the last time
   /// `persist` was called.
@@ -29,7 +28,7 @@ class AutoComplete {
   ///
   /// If multiple words have the same number of entries, they are sorted by recency,
   /// with the most recently entered word being on top.
-  AutoComplete({@required SortEngine engine, List<String> bank}) {
+  AutoComplete({required SortEngine engine, List<String>? bank}) {
     _tree = _TrieSearchTree(engine.scoreFunc);
     bank ??= <String>[];
     for (var x in bank) {
@@ -37,7 +36,7 @@ class AutoComplete {
     }
   }
 
-  AutoComplete.fromFile({@required File file, @required SortEngine engine}) {
+  AutoComplete.fromFile({required File file, required SortEngine engine}) {
     var fileBank = file.readAsLinesSync();
     var tree = _TrieSearchTree(engine.scoreFunc);
     for (var x in fileBank) {
@@ -84,7 +83,7 @@ class AutoComplete {
   /// Get all the entries in a list.
   ///
   /// This is NOT sorted. Use [suggest('')] to get all results, sorted.
-  Iterable<String> get allEntries => _tree.all.map((e) => e.value);
+  Iterable<String?> get allEntries => _tree.all.map((e) => e.value);
 
   /// Suggest entries based on the beginning of the string.
   ///
@@ -94,12 +93,12 @@ class AutoComplete {
   ///
   /// If multiple suggestions have the same number of entries, they are sorted by recency,
   /// with the most recently entered suggestion being on top.
-  List<String> suggest(String prefix) {
+  List<String?> suggest(String prefix) {
     return _tree.suggestions(prefix);
   }
 
   /// Returns true if this engine has no entries.
-  bool get isEmpty => _tree.root.children.isEmpty;
+  bool get isEmpty => _tree.root!.children!.isEmpty;
 
   /// Returns true if this engine contains `entry`.
   bool contains(String entry) => _tree.search(entry);
@@ -165,7 +164,7 @@ extension AutoCompleteBox on Box {
 }
 
 class SortEngine {
-  double Function(SortValue element) scoreFunc;
+  double Function(SortValue element)? scoreFunc;
 
   /// You can manually define a function to score a given [_SortValue] on a
   /// scale of 0 to 1. A [_SortValue] consists of [msToNow], which is how many
@@ -182,7 +181,7 @@ class SortEngine {
   /// A simple engine that sorts entries based on how many times they've been
   /// entered. This engine does not use any recency sorting.
   SortEngine.entriesOnly() {
-    scoreFunc = (SortValue a) => a.numEntries.toDouble();
+    scoreFunc = (SortValue a) => a.numEntries!.toDouble();
   }
 
   /// A complex multi sorting engine with user-defined value curves.
@@ -209,7 +208,7 @@ class SortEngine {
       var msScore =
           1 / pow(1.5, (1 / timeScale.inMilliseconds) * a.msToNow) * msWeight;
       var entryScore =
-          (1 + (-1 / pow(1.5, (1 / maxEntries) * a.numEntries))) * entryWeight;
+          (1 + (-1 / pow(1.5, (1 / maxEntries) * a.numEntries!))) * entryWeight;
       return entryScore + msScore;
     };
   }
@@ -237,17 +236,17 @@ class SortEngine {
     scoreFunc = (SortValue a) {
       var msScore = 1 / pow(1.5, (1 / 0x174876E800) * (a.msToNow)) * msWeight;
       var entryScore =
-          (1 + (-1 / pow(1.5, (1 / 30) * a.numEntries))) * entryWeight;
+          (1 + (-1 / pow(1.5, (1 / 30) * a.numEntries!))) * entryWeight;
       return entryScore + msScore;
     };
   }
 }
 
 class SortValue {
-  final int _msSinceEpoch;
+  final int? _msSinceEpoch;
 
-  int get msToNow => DateTime.now().millisecondsSinceEpoch - _msSinceEpoch;
-  final int numEntries;
+  int get msToNow => DateTime.now().millisecondsSinceEpoch - _msSinceEpoch!;
+  final int? numEntries;
 
   SortValue(this._msSinceEpoch, this.numEntries);
 }
