@@ -93,7 +93,7 @@ class AutoComplete {
   ///
   /// If multiple suggestions have the same number of entries, they are sorted by recency,
   /// with the most recently entered suggestion being on top.
-  List<String?> suggest(String prefix) {
+  List<String> suggest(String prefix) {
     return _tree.suggestions(prefix);
   }
 

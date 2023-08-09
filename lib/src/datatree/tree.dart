@@ -59,7 +59,7 @@ class _TrieSearchTree {
     return returner;
   }
 
-  List<String?> suggestions(String prefix) {
+  List<String> suggestions(String prefix) {
     var base = root;
     for (var i = 0; i < prefix.length; i++) {
       var x = TrieNode(prefix[i], false);
@@ -85,7 +85,10 @@ class _TrieSearchTree {
         return -1;
       }
     });
-    return returner.map((e) => e.value).toList();
+    return returner
+        .where((e) => e.value != null && e.value?.isNotEmpty == true)
+        .map((e) => e.value!)
+        .toList();
   }
 
   void _suggestRec(TrieNode node, String word, List<TrieString> returner) {
